@@ -327,6 +327,7 @@ function buildOptions(data) {
             templateCode: pair.template || item.templateName || '',
             laminate: lam,
             paper: paper,
+            orderId: pair.order_id || '',
             orderData: {
                 info: item.info || '',
                 gluetab: item.gluetab || '',
@@ -1146,16 +1147,47 @@ function main() {
 function processPair(pair, index) {
     var orderData = pair.orderData || { info: '', gluetab: '', filename: '' };
 
-    writeProgress('Opening artwork "' + pair.artFile.name + '"');
-    var artworkDoc = app.open(pair.artFile);
-    waitStep();
-    writeProgress('  Artwork loaded');
-
     var tmplName = pair.templateFile.name.toLowerCase();
     var isCD0434 = tmplName.indexOf('cd0434') !== -1;
     var isPB001 = tmplName.indexOf('pb001') !== -1;
     var isPB005 = tmplName.indexOf('pb005') !== -1;
     var settings = loadTemplateSettings(pair.templateCode);
+
+    var artworkDoc, clipGroup;
+
+    if (PRESET === 'YBS') {
+        var artDir = pair.artFile.parent;
+        var proofDir = artDir ? artDir.parent : null;
+        if (!proofDir) throw new Error('Invalid art directory');
+        proofDir = Folder(proofDir.fsName + '/proof');
+        var proofFile = File(proofDir.fsName + '/' + pair.orderId + '.' + (index + 1) + '.pdf');
+        writeProgress('Opening proof "' + proofFile.name + '"');
+        artworkDoc = app.open(proofFile);
+        waitStep();
+        writeProgress('  Proof opened');
+        clipGroup = findNamedItem(artworkDoc, 'Clip Group');
+        if (!clipGroup) {
+            artworkDoc.close(SaveOptions.DONOTSAVECHANGES);
+            throw new Error('Clip Group not found.');
+        }
+    } else {
+        writeProgress('Opening artwork "' + pair.artFile.name + '"');
+        artworkDoc = app.open(pair.artFile);
+        waitStep();
+        writeProgress('  Artwork loaded');
+
+        writeProgress('Finding bleed path in artwork');
+        var bleedGroup = isCD0434 ?
+            findTopBleedPath(artworkDoc, true) :
+            findBleedPath(artworkDoc, isArtBleedColor, true);
+        waitStep();
+        writeProgress('  Bleed path located');
+
+        writeProgress('Creating clipping mask');
+        clipGroup = createClippingGroup(artworkDoc, bleedGroup);
+        waitStep();
+        writeProgress('  Clip group created');
+    }
 
     writeProgress('Finding bleed path in artwork');
     var bleedGroup = isCD0434 ?

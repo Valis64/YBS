@@ -2036,6 +2036,7 @@ class App:
                     "template_path": temp_path,
                     "paperType": paper,
                     "lamType": lam,
+                    "order_id": order_id,
                 }
             )
         save_order_data(
