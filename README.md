@@ -162,7 +162,12 @@ instructions. All arrays are aligned by the pair numbers (`#1`, `#2`, etc.).
 
 ## Development
 
-See `template_creator.jsx` for the implementation. The top of the file explains the main workflow and utility functions used.
+See `template_creator.jsx` for the implementation. The top of the file explains
+the main workflow and utility functions used.
+
+## YBS Preset Helper
+
+`preset_ybs.py` contains helper logic for locating artwork when the YBS preset is active. Its function `fetch_art(settings, order_number, pair_num)` searches the configured folders using `Path.rglob` and returns the first match. A `ValueError("Refusing…")` is raised if the resolved path includes a `$recycle` segment.
 
 ## Template Settings
 

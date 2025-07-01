@@ -27,6 +27,7 @@ import threading
 import math
 import shutil
 from loading_window import LoadingWindow
+from preset_ybs import fetch_art
 from utils.history import (
     load_run_history,
     save_run_history,
@@ -2021,7 +2022,20 @@ class App:
             temp_root = it.get("template_dir", self.template_dir_var.get())
             month_root = it.get("month_dir", self.month_dir_var.get())
             order_id = it.get("order_id", self.order_id_var.get())
-            art_path = find_art_file(art_root, art_id, month_root, order_id)
+            if self.preset_var.get() == "YBS":
+                art_path = str(
+                    fetch_art(
+                        {
+                            "art_dir": art_root,
+                            "month_dir": month_root,
+                            "art_server_path": self.art_server_var.get(),
+                        },
+                        str(order_id),
+                        idx + 1,
+                    )
+                )
+            else:
+                art_path = find_art_file(art_root, art_id, month_root, order_id)
             temp_path = find_template_file(temp_root, template)
             paper = extract_paper_type(temp_path)
             lam = it.get("lamType", "") or detect_laminate(it.get("info", ""))
