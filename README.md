@@ -19,6 +19,7 @@ For a detailed setup and usage guide see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.
 - **History** button in the Chat Bot panel opens a dashboard summarizing past runs.
 - Optional completion summary saved to a temporary folder (old entries are cleaned automatically).
 - Customizable artwork/template directories and adjustable UI font size.
+- Workload presets switch between customer-specific paths and preprocessing rules.
 - Optional Art Server and Google Drive paths with connectivity indicators.
 - Login details and settings persist in `settings.json` so the GUI stays ready between sessions.
 - The Diagnostic panel's **Open Art Directories** button shows all folders in a grid so you can monitor them live.

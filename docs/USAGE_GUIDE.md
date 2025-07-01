@@ -34,12 +34,13 @@ python order_gui.py
 ## 3. Initial Configuration
 
 1. Open the **Settings** tab.
-2. Set the path to *Adobe Illustrator* if the default does not match your system. You can browse for the executable using **Browse Illustrator**.
-3. If your order site requires authentication, enter the login URL, username and password, then click **Test Login**. A green indicator confirms success. Hidden form fields are detected automatically.
-4. Optionally specify paths for an **Art Server** and **Google Drive**. Use the respective **Login** buttons to verify connectivity. Status messages appear in the log panel.
-5. Provide your **ChatGPT API key** (and optionally a custom API URL) to enable the built-in chat panel. Choose **Login ChatGPT** to verify connection. The URL should end with `/v1` (the program appends it if needed).
-6. Select a GUI theme from the **Appearance** section. Choices are *System*, *Light* and *Dark*.
-6. Save your settings—they are stored in `settings.json` for next time.
+2. Choose a **Workload Preset** to fill in the default art and template folders.
+3. Set the path to *Adobe Illustrator* if the default does not match your system. You can browse for the executable using **Browse Illustrator**.
+4. If your order site requires authentication, enter the login URL, username and password, then click **Test Login**. A green indicator confirms success. Hidden form fields are detected automatically.
+5. Optionally specify paths for an **Art Server** and **Google Drive**. Use the respective **Login** buttons to verify connectivity. Status messages appear in the log panel.
+6. Provide your **ChatGPT API key** (and optionally a custom API URL) to enable the built-in chat panel. Choose **Login ChatGPT** to verify connection. The URL should end with `/v1` (the program appends it if needed).
+7. Select a GUI theme from the **Appearance** section. Choices are *System*, *Light* and *Dark*.
+8. Save your settings—they are stored in `settings.json` for next time.
 
 ## 4. Fetching Order Data
 
