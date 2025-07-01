@@ -470,6 +470,51 @@ def find_art_file(
     return ""
 
 
+def find_order_dir(month_dir: str, order_id: str) -> str:
+    """Return the directory path for ``order_id`` under ``month_dir``.
+
+    Searches recursively and returns the first matching directory name. If no
+    directory is found, an empty string is returned.
+    """
+    if not month_dir or not order_id:
+        return ""
+
+    order_id_str = str(order_id)
+    for dirpath, dirs, _ in os.walk(month_dir):
+        for d in dirs:
+            if d == order_id_str:
+                return os.path.join(dirpath, d)
+    return ""
+
+
+def find_proof_file(month_dir: str, order_id: str, pair_num: int) -> str:
+    """Locate a proof PDF for ``order_id`` and ``pair_num`` inside ``month_dir``.
+
+    The search looks for ``<order_id>/proof`` and returns the first file whose
+    name begins with ``<order_id>.<pair_num>``. Returns an empty string if no
+    match is found.
+    """
+
+    if not month_dir or not order_id or not pair_num:
+        return ""
+
+    order_dir = find_order_dir(month_dir, order_id)
+    if not order_dir:
+        return ""
+
+    proof_dir = os.path.join(order_dir, "proof")
+    if not os.path.isdir(proof_dir):
+        return ""
+
+    prefix = f"{order_id}.{pair_num}".lower()
+    for name in os.listdir(proof_dir):
+        if not name.lower().startswith(prefix):
+            continue
+        if name.lower().endswith((".ai", ".pdf")):
+            return os.path.join(proof_dir, name)
+    return ""
+
+
 def find_template_file(root: str, template: str, sample: bool = False) -> str:
     """Return the template file path for ``template``.
 
@@ -2022,22 +2067,27 @@ class App:
             month_root = it.get("month_dir", self.month_dir_var.get())
             order_id = it.get("order_id", self.order_id_var.get())
             art_path = find_art_file(art_root, art_id, month_root, order_id)
+            proof_path = ""
+            if self.preset_var.get() == "YBS":
+                proof_path = find_proof_file(month_root, order_id, idx + 1)
             temp_path = find_template_file(temp_root, template)
             paper = extract_paper_type(temp_path)
             lam = it.get("lamType", "") or detect_laminate(it.get("info", ""))
             if not lam and is_coffee_sleeve(template):
                 lam = "Uncoated"
             it["paperType"] = paper
-            pairs_data.append(
-                {
-                    "art_id": art_id,
-                    "template": template,
-                    "art_path": art_path,
-                    "template_path": temp_path,
-                    "paperType": paper,
-                    "lamType": lam,
-                }
-            )
+            pair_entry = {
+                "art_id": art_id,
+                "template": template,
+                "art_path": art_path,
+                "template_path": temp_path,
+                "paperType": paper,
+                "lamType": lam,
+                "order_id": order_id,
+            }
+            if proof_path:
+                pair_entry["proof_path"] = proof_path
+            pairs_data.append(pair_entry)
         save_order_data(
             {
                 "items": items,
@@ -2624,7 +2674,10 @@ class App:
                 if sample:
                     cut_src = cut_file_for_template(temp_path)
                     self.sample_copy_info.append((cut_src, os.path.join(dest_root, folder)))
-            pairs_data.append({
+            proof_path = ""
+            if self.preset_var.get() == "YBS":
+                proof_path = find_proof_file(month_root, order_id, idx + 1)
+            pair_info = {
                 "art_id": art_id,
                 "template": template,
                 "art_path": art_path,
@@ -2633,7 +2686,10 @@ class App:
                 "paperType": paper,
                 "lamType": lam,
                 "order_id": order_id,
-            })
+            }
+            if proof_path:
+                pair_info["proof_path"] = proof_path
+            pairs_data.append(pair_info)
             pair_orders.append(order_id)
 
         self.pending_flat_paths = [p for p in flat_paths if p]
