@@ -323,10 +323,12 @@ function buildOptions(data) {
         var paper = pair.paperType || item.paperType || '';
         out.push({
             artFile: File(pair.art_path),
+            proofFile: pair.proof_path ? File(pair.proof_path) : null,
             templateFile: File(pair.template_path),
             templateCode: pair.template || item.templateName || '',
             laminate: lam,
             paper: paper,
+            orderId: pair.order_id || '',
             orderData: {
                 info: item.info || '',
                 gluetab: item.gluetab || '',
@@ -1146,28 +1148,46 @@ function main() {
 function processPair(pair, index) {
     var orderData = pair.orderData || { info: '', gluetab: '', filename: '' };
 
-    writeProgress('Opening artwork "' + pair.artFile.name + '"');
-    var artworkDoc = app.open(pair.artFile);
-    waitStep();
-    writeProgress('  Artwork loaded');
-
     var tmplName = pair.templateFile.name.toLowerCase();
     var isCD0434 = tmplName.indexOf('cd0434') !== -1;
     var isPB001 = tmplName.indexOf('pb001') !== -1;
     var isPB005 = tmplName.indexOf('pb005') !== -1;
     var settings = loadTemplateSettings(pair.templateCode);
 
-    writeProgress('Finding bleed path in artwork');
-    var bleedGroup = isCD0434 ?
-        findTopBleedPath(artworkDoc, true) :
-        findBleedPath(artworkDoc, isArtBleedColor, true);
-    waitStep();
-    writeProgress('  Bleed path located');
+    var artworkDoc, clipGroup, bleedGroup;
 
-    writeProgress('Creating clipping mask');
-    var clipGroup = createClippingGroup(artworkDoc, bleedGroup);
-    waitStep();
-    writeProgress('  Clip group created');
+    if (PRESET === 'YBS') {
+        var proofFile = pair.proofFile;
+        if (!proofFile || !proofFile.exists) {
+            throw new Error('Proof not found: ' + (proofFile ? proofFile.fsName : ''));
+        }
+        writeProgress('Opening proof "' + proofFile.name + '"');
+        artworkDoc = app.open(proofFile);
+        waitStep();
+        writeProgress('  Proof opened');
+        clipGroup = findNamedItem(artworkDoc, 'Clip Group');
+        if (!clipGroup) {
+            artworkDoc.close(SaveOptions.DONOTSAVECHANGES);
+            throw new Error('Clip Group not found.');
+        }
+    } else {
+        writeProgress('Opening artwork "' + pair.artFile.name + '"');
+        artworkDoc = app.open(pair.artFile);
+        waitStep();
+        writeProgress('  Artwork loaded');
+
+        writeProgress('Finding bleed path in artwork');
+        bleedGroup = isCD0434 ?
+            findTopBleedPath(artworkDoc, true) :
+            findBleedPath(artworkDoc, isArtBleedColor, true);
+        waitStep();
+        writeProgress('  Bleed path located');
+
+        writeProgress('Creating clipping mask');
+        clipGroup = createClippingGroup(artworkDoc, bleedGroup);
+        waitStep();
+        writeProgress('  Clip group created');
+    }
 
     writeProgress('Opening template "' + pair.templateFile.name + '"');
     var templateDoc = app.open(pair.templateFile);

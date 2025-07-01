@@ -37,6 +37,9 @@ For a detailed setup and usage guide see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.
 - Positions artwork to the template's `Bleed` path and centers the clipping group after detecting bleed bounds.
 - Adds a laminate label, updates version text and inserts delays to keep Illustrator responsive.
 - Template files must include `<template>_print` and `-vp` for recognition.
+- When the **YBS** preset is selected, the script copies the `Clip Group` from the
+  order's proof PDF instead of generating a new clipping mask. Proof files are
+  located by searching the selected month directory for `<order>/proof` folders.
 
 ### Output
 - Exports both `*_lines_` and `*_flat_` PDFs for each pair.
