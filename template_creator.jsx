@@ -34,6 +34,9 @@ var TEMPLATE_ROOT = 'C:/Users/neone/My Drive (stevan.ybs@gmail.com)/DIE PRINT FI
 var ART_ROOT = '\\MCI2NAS/Art server';
 var SHOW_SUMMARY = false;
 var DIAGNOSTIC_MODE = false;
+var PRESET = '';
+var PRE_SHIFT_X = 0;
+var PRE_SHIFT_Y = 0;
 var PRINT_FOLDER_NAME = 'print';
 var PROGRESS_FILE = 'jsx_progress.txt';
 var PAUSE_FILE = 'jsx_pause.flag';
@@ -278,6 +281,13 @@ function loadInitialOrder() {
         if (obj && typeof obj.diagnostic !== 'undefined') {
             DIAGNOSTIC_MODE = !!obj.diagnostic;
         }
+        if (obj && obj.preset) {
+            PRESET = obj.preset;
+        }
+        if (obj && obj.preprocess) {
+            PRE_SHIFT_X = obj.preprocess.shift_x || 0;
+            PRE_SHIFT_Y = obj.preprocess.shift_y || 0;
+        }
         return obj;
     }
     var htmlFile = File(scriptDir + '/order.html');
@@ -330,7 +340,9 @@ function buildOptions(data) {
         pairs: out,
         vista: false,
         artDir: data.art_dir || ART_ROOT,
-        templateDir: data.template_dir || TEMPLATE_ROOT
+        templateDir: data.template_dir || TEMPLATE_ROOT,
+        preset: data.preset || PRESET,
+        preprocess: data.preprocess || { shift_x: PRE_SHIFT_X, shift_y: PRE_SHIFT_Y }
     };
 }
 
@@ -744,7 +756,9 @@ function showInputDialog(orderItems, pairInfo) {
         pairs: files,
         vista: vistaCheck.value,
         artDir: ART_ROOT,
-        templateDir: TEMPLATE_ROOT
+        templateDir: TEMPLATE_ROOT,
+        preset: PRESET,
+        preprocess: { shift_x: PRE_SHIFT_X, shift_y: PRE_SHIFT_Y }
     };
 }
 
@@ -1035,6 +1049,14 @@ function main() {
 
     if (opts.artDir) ART_ROOT = opts.artDir;
     if (opts.templateDir) TEMPLATE_ROOT = opts.templateDir;
+    if (opts.preset) PRESET = opts.preset;
+    if (opts.preprocess) {
+        PRE_SHIFT_X = opts.preprocess.shift_x || PRE_SHIFT_X;
+        PRE_SHIFT_Y = opts.preprocess.shift_y || PRE_SHIFT_Y;
+    }
+    if (PRESET === 'Vista' && !data.art_dir) {
+        ART_ROOT = 'C:/Vista/Art';
+    }
 
     var summaryItems = [];
     var summaryFolder = null;
@@ -1208,6 +1230,9 @@ function processPair(pair, index) {
         waitStep();
 
         writeProgress('Aligning artwork');
+        if (PRE_SHIFT_X || PRE_SHIFT_Y) {
+            pasted.translate(PRE_SHIFT_X, PRE_SHIFT_Y);
+        }
         alignGroupToPath(pasted, bleedPaths[bi2]);
         waitStep();
         writeProgress('  Alignment done');

@@ -1,0 +1,12 @@
+{
+  "YBS": {
+    "art_dir": "\\\\MCI2NAS/Art server",
+    "template_dir": "C:/Users/neone/My Drive (stevan.ybs@gmail.com)/DIE PRINT FILE SETUPS",
+    "preprocess": {"shift_x": 0, "shift_y": 0}
+  },
+  "Vista": {
+    "art_dir": "C:/Vista/Art",
+    "template_dir": "C:/Vista/Templates",
+    "preprocess": {"shift_x": 10, "shift_y": 0}
+  }
+}

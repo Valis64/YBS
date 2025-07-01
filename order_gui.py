@@ -91,6 +91,7 @@ def ensure_paper_summary_dir():
 
 
 SETTINGS_FILE = "settings.json"
+WORKLOADS_FILE = "workloads.json"
 TEMPLATE_SETTINGS_DIR = APP_DIR / "template_settings"
 
 # Base URL used when fetching an order by its number
@@ -155,6 +156,18 @@ def save_settings(data: dict):
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception:
         traceback.print_exc()
+
+
+def load_workloads() -> dict:
+    """Return workload presets loaded from ``workloads.json``."""
+    path = APP_DIR / WORKLOADS_FILE
+    if path.exists():
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            traceback.print_exc()
+    return {}
 
 
 def load_template_settings(code: str) -> dict:
@@ -839,6 +852,9 @@ class App:
         self.run_start_time: float | None = None
         self.total_time_var = tk.StringVar(value="Total time: 0s")
 
+        self.workloads = load_workloads()
+        self.preset_var = tk.StringVar()
+
         container = tk.Frame(root)
         container.pack(fill="both", expand=True)
 
@@ -1148,6 +1164,7 @@ class App:
         self.chat_api_key_var.set(settings.get("chat_api_key", ""))
         self.chat_api_url_var.set(settings.get("chat_api_url", CHAT_API_URL))
         self.appearance_var.set(settings.get("appearance_mode", "System"))
+        self.preset_var.set(settings.get("preset", next(iter(self.workloads), "")))
         if ctk:
             ctk.set_appearance_mode(self.appearance_var.get())
 
@@ -1190,6 +1207,18 @@ class App:
         self.artids_entry.grid(row=row, column=1, columnspan=2, padx=5, pady=2, sticky="we")
 
         row = 0
+        tk.Label(paths_frame, text="Preset").grid(row=row, column=0, sticky="w")
+        preset_menu = ttk.Combobox(
+            paths_frame,
+            values=list(self.workloads.keys()),
+            textvariable=self.preset_var,
+            state="readonly",
+            width=20,
+        )
+        preset_menu.grid(row=row, column=1, padx=5, pady=2)
+        preset_menu.bind("<<ComboboxSelected>>", lambda e: self.apply_preset())
+        row += 1
+
         tk.Label(paths_frame, text="Art Folder").grid(row=row, column=0, sticky="w")
         tk.Entry(paths_frame, textvariable=self.art_dir_var, width=50).grid(row=row, column=1, padx=5, pady=2)
         tk.Button(paths_frame, text="Browse", command=self.browse_art_dir).grid(row=row, column=2, padx=5, pady=2)
@@ -1318,6 +1347,7 @@ class App:
 
 
         # Initialize status indicators
+        self.apply_preset()
         self.check_art_server()
         self.check_gdrive()
         self.update_chat_status()
@@ -1475,6 +1505,7 @@ class App:
             "appearance_mode": self.appearance_var.get(),
             "diagnostic_mode": self.diagnostic_var.get(),
             "review_flats": self.review_flats_var.get(),
+            "preset": self.preset_var.get(),
         }
         save_settings(data)
 
@@ -2017,6 +2048,8 @@ class App:
                 "order_id": self.order_id_var.get(),
                 "show_summary": self.summary_var.get(),
                 "diagnostic": self.diagnostic_var.get(),
+                "preset": self.preset_var.get(),
+                "preprocess": self.workloads.get(self.preset_var.get(), {}).get("preprocess", {}),
                 "order_info": {
                     "order_id": self.order_info_vars["order_id"].get(),
                     "company": self.order_info_vars["company"].get(),
@@ -2100,6 +2133,15 @@ class App:
         if chosen:
             self.gdrive_var.set(chosen)
             self.save_settings()
+
+    def apply_preset(self):
+        """Populate directories from the selected workload preset."""
+        preset = self.workloads.get(self.preset_var.get(), {})
+        if preset.get("art_dir"):
+            self.art_dir_var.set(preset["art_dir"])
+        if preset.get("template_dir"):
+            self.template_dir_var.set(preset["template_dir"])
+        self.save_settings()
 
     def open_art_dirs(self):
         """Open all detected artwork directories and arrange them."""
@@ -2611,6 +2653,8 @@ class App:
                 "order_id": self.order_id_var.get(),
                 "show_summary": self.summary_var.get(),
                 "diagnostic": self.diagnostic_var.get(),
+                "preset": self.preset_var.get(),
+                "preprocess": self.workloads.get(self.preset_var.get(), {}).get("preprocess", {}),
             }
         )
         self.save_settings()
