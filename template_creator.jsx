@@ -1153,7 +1153,7 @@ function processPair(pair, index) {
     var isPB005 = tmplName.indexOf('pb005') !== -1;
     var settings = loadTemplateSettings(pair.templateCode);
 
-    var artworkDoc, clipGroup;
+    var artworkDoc, clipGroup, bleedGroup;
 
     if (PRESET === 'YBS') {
         var artDir = pair.artFile.parent;
@@ -1161,6 +1161,9 @@ function processPair(pair, index) {
         if (!proofDir) throw new Error('Invalid art directory');
         proofDir = Folder(proofDir.fsName + '/proof');
         var proofFile = File(proofDir.fsName + '/' + pair.orderId + '.' + (index + 1) + '.pdf');
+        if (!proofFile.exists) {
+            throw new Error('Proof not found: ' + proofFile.fsName);
+        }
         writeProgress('Opening proof "' + proofFile.name + '"');
         artworkDoc = app.open(proofFile);
         waitStep();
@@ -1177,7 +1180,7 @@ function processPair(pair, index) {
         writeProgress('  Artwork loaded');
 
         writeProgress('Finding bleed path in artwork');
-        var bleedGroup = isCD0434 ?
+        bleedGroup = isCD0434 ?
             findTopBleedPath(artworkDoc, true) :
             findBleedPath(artworkDoc, isArtBleedColor, true);
         waitStep();
@@ -1188,18 +1191,6 @@ function processPair(pair, index) {
         waitStep();
         writeProgress('  Clip group created');
     }
-
-    writeProgress('Finding bleed path in artwork');
-    var bleedGroup = isCD0434 ?
-        findTopBleedPath(artworkDoc, true) :
-        findBleedPath(artworkDoc, isArtBleedColor, true);
-    waitStep();
-    writeProgress('  Bleed path located');
-
-    writeProgress('Creating clipping mask');
-    var clipGroup = createClippingGroup(artworkDoc, bleedGroup);
-    waitStep();
-    writeProgress('  Clip group created');
 
     writeProgress('Opening template "' + pair.templateFile.name + '"');
     var templateDoc = app.open(pair.templateFile);
