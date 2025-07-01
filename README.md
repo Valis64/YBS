@@ -77,18 +77,24 @@ from review import ReviewManager, FlaggedItem, FlagStatus
 ## Installing Dependencies
 
 Install the Python packages listed in `requirements.txt` before running the
-program or the tests:
+program or the tests. A small helper `install_requirements.py` is included for
+convenience:
 
 ```bash
 pip install -r requirements.txt
+# or
+python install_requirements.py
 ```
 
 ## Testing
 
-Install the dependencies above before running the tests:
+Install the dependencies above before running the tests. In continuous
+integration environments make sure to install them before invoking `pytest`:
 
 ```bash
 pip install -r requirements.txt
+# or
+python install_requirements.py
 ```
 
 Then run the test suite with:
