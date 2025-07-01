@@ -173,7 +173,7 @@ the main workflow and utility functions used.
 
 ## YBS Preset Helper
 
-`preset_ybs.py` contains helper logic for locating artwork when the YBS preset is active. The helper `fetch_art(settings, order_number, pair_num)` now searches the month directory under the company and order number. When a `proof` folder exists the pair files are used. Otherwise the order directory is scanned for PDFs containing `proof` with version suffixes (`v1`, `v2`, etc.) and the highest version is returned. A `ValueError("Refusing…")` is raised if the resolved path includes a `$recycle` segment.
+`preset_ybs.py` contains helper logic for locating artwork when the YBS preset is active. The helper `fetch_art(settings, order_number, pair_num)` now scans the configured month directory for any folder named after the order number. If a `proof` subfolder is present the pair files are used. Otherwise the order directory is scanned for PDFs containing `proof` with version suffixes (`v1`, `v2`, etc.) and the highest version is returned. A `ValueError("Refusing…")` is raised if the resolved path includes a `$recycle` segment.
 
 ## Template Settings
 

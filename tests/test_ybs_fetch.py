@@ -17,7 +17,7 @@ class FetchArtTest(unittest.TestCase):
             pair1.write_text("a")
             pair2.write_text("b")
 
-            settings = {"month_dir": str(month_dir), "company": "ACME"}
+            settings = {"month_dir": str(month_dir)}
             self.assertEqual(fetch_art(settings, "56789", 1), pair1.resolve())
             self.assertEqual(fetch_art(settings, "56789", 2), pair2.resolve())
 
@@ -29,7 +29,7 @@ class FetchArtTest(unittest.TestCase):
             bad = recycle / "12345.1.pdf"
             bad.write_text("x")
 
-            settings = {"month_dir": str(month_dir), "company": "ACME"}
+            settings = {"month_dir": str(month_dir)}
             with self.assertRaises(ValueError):
                 fetch_art(settings, "12345", 1)
 
@@ -44,7 +44,7 @@ class FetchArtTest(unittest.TestCase):
             v1.write_text("x")
             v2.write_text("y")
 
-            settings = {"month_dir": str(month_dir), "company": "ACME"}
+            settings = {"month_dir": str(month_dir)}
             self.assertEqual(fetch_art(settings, "11111", 1), v2.resolve())
             self.assertEqual(fetch_art(settings, "11111", 2), v2.resolve())
 

@@ -2029,7 +2029,6 @@ class App:
                             "art_dir": art_root,
                             "month_dir": month_root,
                             "art_server_path": self.art_server_var.get(),
-                            "company": it.get("company", self.order_info_vars["company"].get()),
                         },
                         str(order_id),
                         idx + 1,

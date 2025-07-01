@@ -6,30 +6,31 @@ import re
 def fetch_art(settings: dict, order_number: str, pair_num: int) -> Path:
     """Return the artwork path for ``order_number`` and ``pair_num``.
 
-    The search first checks the configured month directory which may include a
-    company subfolder. If a ``proof`` folder exists it is searched for pair
-    files. Otherwise the order directory itself is scanned for PDFs containing
-    ``proof`` with version suffixes (``v1``, ``v2`` ...); the highest version is
-    returned. If nothing is found there, the main art directory is searched next.
+    The search first checks the configured month directory. Any folder named
+    after the ``order_number`` is considered the order root regardless of the
+    company path above it. If a ``proof`` subfolder exists it is searched for
+    pair files. Otherwise the order directory itself is scanned for PDFs
+    containing ``proof`` with version suffixes (``v1``, ``v2`` ...); the highest
+    version is returned. If nothing is found there, the main art directory is
+    searched next.
     """
     logger = logging.getLogger(__name__)
     order_number = str(order_number).strip()
     pair_suffix = f"#{pair_num}"
-    company = settings.get("company", "").strip()
     candidates: list[Path] = []
+    order_roots: list[Path] = []
 
     month_dir = settings.get("month_dir")
-    order_root: Path | None = None
     if month_dir:
-        order_root = Path(month_dir)
-        if company:
-            order_root = order_root / company / order_number
-        else:
-            order_root = order_root / order_number
-        proof_dir = order_root / "proof"
-        if proof_dir.exists():
-            candidates.append(proof_dir)
-        candidates.extend([order_root / "art", order_root])
+        base = Path(month_dir)
+        if base.exists():
+            for p in base.rglob(order_number):
+                if p.is_dir():
+                    order_roots.append(p)
+                    proof_dir = p / "proof"
+                    if proof_dir.exists():
+                        candidates.append(proof_dir)
+                    candidates.extend([p / "art", p])
 
     art_root = settings.get("art_dir") or settings.get("art_server_path")
     if art_root:
@@ -49,11 +50,11 @@ def fetch_art(settings: dict, order_number: str, pair_num: int) -> Path:
                 logger.info("Found %s", resolved)
                 return resolved
 
-    # Fallback: search order directory for highest proof version
-    if order_root and order_root.exists():
+    # Fallback: search order directories for highest proof version
+    for root in order_roots:
         best: Path | None = None
         best_version = -1
-        for path in order_root.glob("*.pdf"):
+        for path in root.glob("*.pdf"):
             name = path.name.lower()
             if "proof" not in name:
                 continue
